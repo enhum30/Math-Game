@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI 能做什麼｜Claude + Antigravity 給老師的工作夥伴</title>
+  <style>
+    :root {
+      --bg: #121312;
+      --panel: #1b1d1c;
+      --panel-2: #222522;
+      --text: #f5efe4;
+      --muted: #c9bda9;
+      --line: rgba(245, 239, 228, 0.13);
+      --warm: #f0a84b;
+      --coral: #e96f5d;
+      --teal: #58c7b4;
+      --green: #9ccc65;
+      --shadow: 0 24px 80px rgba(0, 0, 0, 0.34);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Noto Sans TC", "Microsoft JhengHei", "PingFang TC", Arial, sans-serif;
+      line-height: 1.7;
+      color: var(--text);
+      background: var(--bg);
+    }
+
+    a {
+      color: inherit;
+    }
+
+    .hero {
+      min-height: 88vh;
+      position: relative;
+      display: grid;
+      align-items: end;
+      padding: 32px;
+      overflow: hidden;
+      isolation: isolate;
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, rgba(18, 19, 18, 0.94) 0%, rgba(18, 19, 18, 0.72) 40%, rgba(18, 19, 18, 0.2) 74%),
+        linear-gradient(0deg, rgba(18, 19, 18, 1) 0%, rgba(18, 19, 18, 0.08) 44%),
+        url("assets/teacher-ai-hero.png") center right / cover no-repeat;
+      z-index: -2;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: auto 0 0 0;
+      height: 120px;
+      background: linear-gradient(0deg, var(--bg), rgba(18, 19, 18, 0));
+      z-index: -1;
+    }
+
+    .nav {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 18px;
+      padding: 22px 32px;
+      color: var(--muted);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .mark {
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      border-radius: 8px;
+      color: #18120a;
+      background: var(--warm);
+      font-weight: 900;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 18px;
+      font-size: 0.95rem;
+    }
+
+    .hero-content {
+      width: min(760px, 100%);
+      padding: 126px 0 60px;
+    }
+
+    .eyebrow {
+      color: var(--warm);
+      font-weight: 800;
+      letter-spacing: 0;
+      text-transform: uppercase;
+      font-size: 0.88rem;
+    }
+
+    h1,
+    h2,
+    h3 {
+      margin: 0;
+      line-height: 1.2;
+      letter-spacing: 0;
+    }
+
+    h1 {
+      margin-top: 12px;
+      font-size: clamp(2.45rem, 7vw, 5.4rem);
+      max-width: 12ch;
+    }
+
+    .lead {
+      margin: 24px 0 0;
+      max-width: 680px;
+      color: #eadfcd;
+      font-size: clamp(1.05rem, 2vw, 1.28rem);
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 30px;
+    }
+
+    .button {
+      min-height: 46px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 16px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      font-weight: 800;
+      text-decoration: none;
+      background: rgba(245, 239, 228, 0.08);
+    }
+
+    .button.primary {
+      color: #17110a;
+      border-color: transparent;
+      background: var(--warm);
+    }
+
+    main {
+      padding: 0 32px 72px;
+    }
+
+    .section {
+      width: min(1180px, 100%);
+      margin: 0 auto;
+      padding: 58px 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .section-header {
+      display: grid;
+      grid-template-columns: minmax(220px, 0.8fr) minmax(280px, 1.2fr);
+      gap: 28px;
+      align-items: start;
+      margin-bottom: 28px;
+    }
+
+    h2 {
+      font-size: clamp(1.8rem, 4vw, 3rem);
+    }
+
+    .section-header p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 1.05rem;
+    }
+
+    .intro-grid,
+    .plugin-grid,
+    .talk-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      min-height: 100%;
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.015)), var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .card h3 {
+      font-size: 1.15rem;
+      margin-bottom: 10px;
+    }
+
+    .card p,
+    .card li {
+      color: var(--muted);
+      margin: 0;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 2px 9px;
+      margin-bottom: 14px;
+      border-radius: 999px;
+      color: #141211;
+      background: var(--teal);
+      font-size: 0.82rem;
+      font-weight: 900;
+    }
+
+    .tag.warm {
+      background: var(--warm);
+    }
+
+    .tag.coral {
+      background: var(--coral);
+      color: #fff7f1;
+    }
+
+    .work-list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .work-item {
+      display: grid;
+      grid-template-columns: 44px 1fr;
+      gap: 14px;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel-2);
+    }
+
+    .icon {
+      width: 44px;
+      height: 44px;
+      display: grid;
+      place-items: center;
+      border-radius: 8px;
+      color: #17110a;
+      background: var(--warm);
+      font-weight: 900;
+    }
+
+    .work-item:nth-child(3n + 2) .icon {
+      background: var(--teal);
+    }
+
+    .work-item:nth-child(3n) .icon {
+      color: #fff7f1;
+      background: var(--coral);
+    }
+
+    .work-item h3 {
+      font-size: 1.05rem;
+      margin-bottom: 6px;
+    }
+
+    .example {
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-left: 3px solid var(--warm);
+      color: #f0e6d4;
+      background: rgba(240, 168, 75, 0.08);
+      border-radius: 0 8px 8px 0;
+      font-size: 0.95rem;
+    }
+
+    .plugin-card {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .plugin-card::before {
+      content: attr(data-rank);
+      position: absolute;
+      top: 18px;
+      right: 18px;
+      color: rgba(245, 239, 228, 0.16);
+      font-size: 3.4rem;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .do-dont {
+      display: grid;
+      gap: 12px;
+    }
+
+    .tip {
+      display: grid;
+      grid-template-columns: 72px 1fr;
+      gap: 12px;
+      align-items: start;
+      padding: 16px;
+      border-radius: 8px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+    }
+
+    .tip strong {
+      color: var(--green);
+    }
+
+    .tip.dont strong {
+      color: var(--coral);
+    }
+
+    .prompt-box {
+      padding: 22px;
+      border: 1px solid rgba(240, 168, 75, 0.36);
+      border-radius: 8px;
+      background: rgba(240, 168, 75, 0.09);
+    }
+
+    .prompt-box code {
+      display: block;
+      white-space: pre-wrap;
+      color: #fff7e9;
+      font-family: "Cascadia Mono", Consolas, monospace;
+      font-size: 0.96rem;
+    }
+
+    footer {
+      width: min(1180px, 100%);
+      margin: 0 auto;
+      padding: 34px 0 0;
+      color: var(--muted);
+      border-top: 1px solid var(--line);
+    }
+
+    @media (max-width: 860px) {
+      .hero,
+      main {
+        padding-left: 20px;
+        padding-right: 20px;
+      }
+
+      .nav {
+        padding: 18px 20px;
+      }
+
+      .nav-links {
+        display: none;
+      }
+
+      .hero {
+        min-height: 86vh;
+      }
+
+      .hero::before {
+        background:
+          linear-gradient(90deg, rgba(18, 19, 18, 0.96) 0%, rgba(18, 19, 18, 0.82) 58%, rgba(18, 19, 18, 0.35) 100%),
+          linear-gradient(0deg, rgba(18, 19, 18, 1) 0%, rgba(18, 19, 18, 0.12) 48%),
+          url("assets/teacher-ai-hero.png") center / cover no-repeat;
+      }
+
+      .section-header,
+      .intro-grid,
+      .plugin-grid,
+      .talk-grid,
+      .work-list {
+        grid-template-columns: 1fr;
+      }
+
+      .work-item,
+      .tip {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <nav class="nav" aria-label="頁面導覽">
+      <div class="brand"><span class="mark">AI</span><span>AI 能做什麼</span></div>
+      <div class="nav-links">
+        <a href="#intro">我是誰</a>
+        <a href="#work">教學應用</a>
+        <a href="#plugins">推薦插件</a>
+        <a href="#talk">怎麼提問</a>
+      </div>
+    </nav>
+    <div class="hero-content">
+      <div class="eyebrow">Claude + Antigravity for Teachers</div>
+      <h1>你的教學工作副駕</h1>
+      <p class="lead">
+        我可以協助老師把想法變成教材、把雜事整理成流程、把班級訊息寫得更清楚，也能在 Antigravity 裡幫你做網站、整理檔案、產生範例程式與教學工具。
+      </p>
+      <div class="hero-actions">
+        <a class="button primary" href="#work">看我能幫什麼</a>
+        <a class="button" href="#talk">學會好好問 AI</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="section" id="intro">
+      <div class="section-header">
+        <h2>我是誰</h2>
+        <p>
+          你可以把我想成一位能對話、能整理、能寫作、也能動手改檔案的 AI 夥伴。結合 Antigravity 後，我不只回答問題，也能在你的電腦工作區裡建立網頁、調整文件、分析資料與協助開發教學小工具。
+        </p>
+      </div>
+      <div class="intro-grid">
+        <article class="card">
+          <span class="tag warm">理解脈絡</span>
+          <h3>從老師的情境出發</h3>
+          <p>你可以直接說「我要給七年級用」「班上程度差異大」「要 15 分鐘完成」，我會把限制納入設計。</p>
+        </article>
+        <article class="card">
+          <span class="tag">產出成品</span>
+          <h3>不只給建議，也能做出來</h3>
+          <p>在 Antigravity 裡，我可以建立 HTML、整理表格、撰寫腳本、產生範本，讓想法變成可用檔案。</p>
+        </article>
+        <article class="card">
+          <span class="tag coral">陪你迭代</span>
+          <h3>可以一直修改到適合</h3>
+          <p>你可以說「再簡單一點」「改成給家長看」「加上評分規準」，我會依回饋調整版本。</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="work">
+      <div class="section-header">
+        <h2>我能做的事</h2>
+        <p>以下不是全部宇宙，而是老師日常最常用、最容易立刻省時間的工作類型。每一項都附上一個實際可開口交辦的例子。</p>
+      </div>
+      <div class="work-list">
+        <article class="work-item">
+          <div class="icon">卷</div>
+          <div>
+            <h3>出考卷與題庫</h3>
+            <p>依年級、單元、難度、題型比例產生試題，並附答案與解析。</p>
+            <div class="example">例：幫我出一份國小五年級分數加減 30 題，含 5 題應用題與答案。</div>
+          </div>
+        </article>
+        <article class="work-item">
+          <div class="icon">課</div>
+          <div>
+            <h3>設計教案與活動</h3>
+            <p>把教學目標、時間、材料、分組方式與評量方式整理成完整流程。</p>
+            <div class="example">例：幫我設計 40 分鐘的「能源轉換」探究課，適合八年級。</div>
+          </div>
+        </article>
+        <article class="work-item">
+          <div class="icon">材</div>
+          <div>
+            <h3>教材製作</h3>
+            <p>產生講義、投影片大綱、學習單、閱讀文本、實驗步驟與延伸任務。</p>
+            <div class="example">例：把這篇文章改成三種閱讀程度的學習單，附關鍵字解釋。</div>
+          </div>
+        </article>
+        <article class="work-item">
+          <div class="icon">評</div>
+          <div>
+            <h3>評量規準與回饋</h3>
+            <p>建立 rubric、同儕互評表、作品檢核表，或把評語改得具體有幫助。</p>
+            <div class="example">例：幫我做一份簡報評分規準，包含內容、表達、視覺與合作。</div>
+          </div>
+        </article>
+        <article class="work-item">
+          <div class="icon">班</div>
+          <div>
+            <h3>班級經營</h3>
+            <p>協助設計班規、座位策略、獎勵制度、衝突處理話術與班會流程。</p>
+            <div class="example">例：班上常有人打斷同學發言，幫我設計一週改善方案。</div>
+          </div>
+        </article>
+        <article class="work-item">
+          <div class="icon">家</div>
+          <div>
+            <h3>家長聯絡</h3>
+            <p>把訊息寫得溫和、清楚、專業，並避免誤會或過度指責。</p>
+            <div class="example">例：幫我寫一封給家長的訊息，說明孩子最近作業缺交但保留合作語氣。</div>
+          </div>
+        </article>
+        <article class="work-item">
+          <div class="icon">差</div>
+          <div>
+            <h3>差異化教學</h3>
+            <p>同一主題可改成基礎、標準、挑戰三層任務，照顧不同程度學生。</p>
+            <div class="example">例：把「面積」單元設計成三層任務卡，讓學生自己選擇挑戰。</div>
+          </div>
+        </article>
+        <article class="work-item">
+          <div class="icon">文</div>
+          <div>
+            <h3>公文、公告與行政文字</h3>
+            <p>整理活動通知、會議紀錄、成果報告、申請書與校內公告。</p>
+            <div class="example">例：幫我把校外教學注意事項改成家長容易讀懂的公告。</div>
+          </div>
+        </article>
+        <article class="work-item">
+          <div class="icon">資</div>
+          <div>
+            <h3>資料整理與表格分析</h3>
+            <p>整理成績、問卷、出缺席、回饋意見，找出趨勢與可行下一步。</p>
+            <div class="example">例：根據這份測驗結果，幫我找出全班最需要補救的三個概念。</div>
+          </div>
+        </article>
+        <article class="work-item">
+          <div class="icon">站</div>
+          <div>
+            <h3>教學網頁與互動工具</h3>
+            <p>在 Antigravity 中製作簡易網頁、小測驗、抽籤器、計分板或學習任務頁。</p>
+            <div class="example">例：幫我做一個英文單字翻卡練習網頁，可以顯示答案與重新洗牌。</div>
+          </div>
+        </article>
+        <article class="work-item">
+          <div class="icon">語</div>
+          <div>
+            <h3>改寫、翻譯與語氣調整</h3>
+            <p>把文字改成學生版、家長版、正式版、鼓勵版，或轉成雙語教材。</p>
+            <div class="example">例：把這段自然科說明改成國小四年級聽得懂的版本。</div>
+          </div>
+        </article>
+        <article class="work-item">
+          <div class="icon">想</div>
+          <div>
+            <h3>創意發想與備課討論</h3>
+            <p>幫你從主題、活動、提問、情境任務到跨領域連結一起腦力激盪。</p>
+            <div class="example">例：用「校園植物」設計一個結合自然、國語和資訊的跨域任務。</div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="plugins">
+      <div class="section-header">
+        <h2>推薦老師裝的插件</h2>
+        <p>Antigravity 的插件生態會隨時間改變；以下用「功能類型」推薦，安裝時可在擴充功能商店搜尋對應名稱或同類型工具。</p>
+      </div>
+      <div class="plugin-grid">
+        <article class="card plugin-card" data-rank="01">
+          <span class="tag warm">必裝</span>
+          <h3>Live Server / 本機預覽</h3>
+          <p>做班級網頁、互動教材或 HTML 學習單時，能一鍵在瀏覽器即時預覽，修改後立刻看結果。</p>
+        </article>
+        <article class="card plugin-card" data-rank="02">
+          <span class="tag">必裝</span>
+          <h3>Markdown All in One</h3>
+          <p>適合寫教案、會議紀錄、課程筆記與講義草稿，格式乾淨，也容易轉成其他文件。</p>
+        </article>
+        <article class="card plugin-card" data-rank="03">
+          <span class="tag coral">效率</span>
+          <h3>Prettier / 格式化工具</h3>
+          <p>讓網頁、JSON、設定檔自動排版，學生作品或自己做的小工具都更容易閱讀與維護。</p>
+        </article>
+        <article class="card plugin-card" data-rank="04">
+          <span class="tag warm">資料</span>
+          <h3>Excel / CSV Viewer</h3>
+          <p>快速查看測驗成績、問卷回覆、名單與分組資料，不必每次都打開大型試算表軟體。</p>
+        </article>
+        <article class="card plugin-card" data-rank="05">
+          <span class="tag">協作</span>
+          <h3>GitHub Pull Requests 或 Git 工具</h3>
+          <p>若老師帶學生做專題或程式課，可管理版本、比較修改、保存作品歷程。</p>
+        </article>
+        <article class="card plugin-card" data-rank="06">
+          <span class="tag coral">品質</span>
+          <h3>Spell Checker / 拼字檢查</h3>
+          <p>製作英文教材、雙語公告、課程網站時，能快速抓出拼字錯誤，降低發布前的檢查負擔。</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="talk">
+      <div class="section-header">
+        <h2>怎麼跟我說話</h2>
+        <p>好的提問像好的教案：對象、目標、限制、格式講清楚，產出的品質通常會立刻提升。</p>
+      </div>
+      <div class="talk-grid">
+        <div class="do-dont">
+          <div class="tip">
+            <strong>Do</strong>
+            <p>說明學生年級、程度、課程單元與可用時間。</p>
+          </div>
+          <div class="tip">
+            <strong>Do</strong>
+            <p>指定輸出格式，例如表格、條列、講義、題目加答案、家長訊息。</p>
+          </div>
+          <div class="tip">
+            <strong>Do</strong>
+            <p>給我現有素材，並說明你想保留、刪除或改寫的部分。</p>
+          </div>
+        </div>
+        <div class="do-dont">
+          <div class="tip dont">
+            <strong>Don't</strong>
+            <p>只說「幫我做教材」卻沒有主題、對象或使用情境。</p>
+          </div>
+          <div class="tip dont">
+            <strong>Don't</strong>
+            <p>一次要求太多互相衝突的目標，例如又要很短、又要包含所有細節。</p>
+          </div>
+          <div class="tip dont">
+            <strong>Don't</strong>
+            <p>把學生個資、敏感家庭資訊或完整聯絡資料直接貼上來。</p>
+          </div>
+        </div>
+        <div class="prompt-box">
+          <code>可以這樣問：
+「我要教國小六年級『比與比例』，一節課 40 分鐘。請幫我設計一份活動式教案，包含導入、分組任務、3 題形成性評量、回家作業，語氣要適合新手老師照著做。」</code>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>這份頁面由 AI 協助建立。你可以把它當作給老師的快速導覽，也可以請我繼續改成投影片、海報、講義或互動版。</p>
+  </footer>
+</body>
+</html>
