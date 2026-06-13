@@ -402,6 +402,99 @@
       font-weight: 1000;
     }
 
+    .cutscene {
+      position: fixed;
+      inset: 0;
+      z-index: 28;
+      display: grid;
+      grid-template-rows: 1fr auto;
+      color: var(--text);
+      background: #050812;
+      cursor: pointer;
+      opacity: 1;
+      transition: opacity 0.55s ease, visibility 0.55s ease;
+    }
+
+    .cutscene.fade-out {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .cutscene-visual {
+      position: relative;
+      min-height: 0;
+      overflow: hidden;
+      background: #050812;
+    }
+
+    .cutscene-visual::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(to top, rgba(5, 8, 18, 0.86), transparent 38%),
+        radial-gradient(circle at 50% 55%, transparent 44%, rgba(0, 0, 0, 0.28));
+    }
+
+    .cutscene-img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+    }
+
+    .cutscene-panel {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      gap: 10px;
+      width: min(980px, calc(100% - 28px));
+      margin: -160px auto 22px;
+      padding: 18px 20px;
+      border: 2px solid rgba(255, 211, 95, 0.55);
+      border-radius: 8px;
+      background: rgba(9, 12, 24, 0.78);
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+      backdrop-filter: blur(6px);
+    }
+
+    .cutscene-kicker {
+      color: var(--gold);
+      font-size: 0.96rem;
+      font-weight: 1000;
+    }
+
+    .cutscene-title {
+      margin: 0;
+      color: var(--gold);
+      font-size: clamp(2rem, 5vw, 4rem);
+      line-height: 1;
+      text-shadow: 0 4px 0 #7c4424, 0 12px 26px rgba(0, 0, 0, 0.42);
+    }
+
+    .cutscene-text {
+      margin: 0;
+      color: rgba(255, 246, 215, 0.94);
+      font-size: clamp(1.08rem, 2.1vw, 1.5rem);
+      font-weight: 800;
+      line-height: 1.65;
+    }
+
+    .cutscene-next {
+      justify-self: end;
+      min-height: 42px;
+      padding: 0 16px;
+      border: 0;
+      border-radius: 8px;
+      color: #211506;
+      background: var(--gold);
+      box-shadow: 0 5px 0 #895127;
+      font-weight: 1000;
+      cursor: pointer;
+    }
+
     @keyframes slot-bad {
       20%, 60% { border-color: var(--red); transform: translateX(-8px); }
       40%, 80% { border-color: var(--red); transform: translateX(8px); }
@@ -430,6 +523,15 @@
       .slots,
       .bag {
         grid-template-columns: 1fr;
+      }
+
+      .cutscene-panel {
+        margin-bottom: 12px;
+        padding: 14px;
+      }
+
+      .cutscene-next {
+        justify-self: stretch;
       }
     }
   </style>
@@ -479,11 +581,46 @@
     </div>
   </div>
 
+  <section id="endingCutscene" class="cutscene hidden" aria-live="polite">
+    <div class="cutscene-visual">
+      <img id="cutsceneImg" class="cutscene-img" src="pic01.png" alt="">
+    </div>
+    <div class="cutscene-panel">
+      <div id="cutsceneKicker" class="cutscene-kicker">三印歸光</div>
+      <h2 id="cutsceneTitle" class="cutscene-title">大門甦醒</h2>
+      <p id="cutsceneText" class="cutscene-text"></p>
+      <button id="cutsceneNext" class="cutscene-next" type="button">下一幕</button>
+    </div>
+  </section>
+
   <script>
     const levels = [
       { id: "dynasty", icon: "🎴", key: "cert_dynasty", cert: "朝代之印", slot: "朝代", stamp: "#stampDynasty" },
       { id: "idiom", icon: "📝", key: "cert_idiom", cert: "成語之印", slot: "成語", stamp: "#stampIdiom" },
       { id: "warrior", icon: "⚔️", key: "cert_warrior", cert: "勇者之印", slot: "勇者", stamp: "#stampWarrior" }
+    ];
+
+    const endingScenes = [
+      {
+        image: "pic01.png",
+        title: "大門甦醒",
+        text: "三枚印記終於回到門前。不是為了證明誰最強，而是讓沉睡的路，再次記得方向。"
+      },
+      {
+        image: "pic02.png",
+        title: "三地回響",
+        text: "每一道題，都曾是一顆小小的火星。答對的光，答錯後再試的光，如今都照向同一扇門。"
+      },
+      {
+        image: "pic03.png",
+        title: "門後之海",
+        text: "巫師低聲說：「原來門後不是終點。」門只是把世界翻到下一頁。"
+      },
+      {
+        image: "pic04.png",
+        title: "新的地圖",
+        text: "冒險暫時收進背包。等下一次打開地圖，故事會知道你曾經來過。"
+      }
     ];
 
     const cover = document.querySelector("#cover");
@@ -498,10 +635,17 @@
     const finishView = document.querySelector("#finishView");
     const timeText = document.querySelector("#timeText");
     const againBtn = document.querySelector("#againBtn");
+    const endingCutscene = document.querySelector("#endingCutscene");
+    const cutsceneImg = document.querySelector("#cutsceneImg");
+    const cutsceneKicker = document.querySelector("#cutsceneKicker");
+    const cutsceneTitle = document.querySelector("#cutsceneTitle");
+    const cutsceneText = document.querySelector("#cutsceneText");
+    const cutsceneNext = document.querySelector("#cutsceneNext");
 
     const placed = {};
     let dragGhost = null;
     let dragId = "";
+    let sceneIndex = 0;
 
     function init() {
       if (!localStorage.getItem("adventure_start")) {
@@ -635,7 +779,7 @@
         placed[target] = certId;
         renderGate();
         if (levels.every(level => placed[level.id] === level.id)) {
-          setTimeout(showFinish, 260);
+          setTimeout(startEndingCutscene, 260);
         }
         return;
       }
@@ -646,7 +790,39 @@
       setTimeout(() => slot.classList.remove("bad"), 360);
     }
 
+    function startEndingCutscene() {
+      gateModal.classList.add("hidden");
+      sceneIndex = 0;
+      renderEndingScene();
+      endingCutscene.classList.remove("hidden", "fade-out");
+    }
+
+    function renderEndingScene() {
+      const scene = endingScenes[sceneIndex];
+      cutsceneImg.src = scene.image;
+      cutsceneImg.alt = scene.title;
+      cutsceneKicker.textContent = `三印歸光　${sceneIndex + 1} / ${endingScenes.length}`;
+      cutsceneTitle.textContent = scene.title;
+      cutsceneText.textContent = scene.text;
+      cutsceneNext.textContent = sceneIndex === endingScenes.length - 1 ? "冒險完成" : "下一幕";
+    }
+
+    function nextEndingScene(event) {
+      event.stopPropagation();
+      sceneIndex += 1;
+      if (sceneIndex >= endingScenes.length) {
+        endingCutscene.classList.add("fade-out");
+        setTimeout(() => {
+          endingCutscene.classList.add("hidden");
+          showFinish();
+        }, 560);
+        return;
+      }
+      renderEndingScene();
+    }
+
     function showFinish() {
+      gateModal.classList.remove("hidden");
       gateChallenge.classList.add("hidden");
       finishView.classList.remove("hidden");
       const started = Number(localStorage.getItem("adventure_start")) || Date.now();
@@ -685,6 +861,8 @@
     gateModal.addEventListener("click", event => {
       if (event.target === gateModal) gateModal.classList.add("hidden");
     });
+    endingCutscene.addEventListener("click", nextEndingScene);
+    cutsceneNext.addEventListener("click", nextEndingScene);
     againBtn.addEventListener("click", resetAdventure);
 
     init();
